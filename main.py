@@ -1,10 +1,9 @@
-import constants
-import Graphics.draw
-import Graphics.colours
-from Physics import cpu, particle
 import numpy
-from math import sqrt
 import pygame
+import constants
+from Graphics import draw, colours
+from Physics import cpu, particle
+from math import sqrt
 
 
 def create_particles(num):
@@ -49,10 +48,10 @@ def get_mouse_stats():
 
 
 def setup():
-    global positions, vels, colours
+    global positions, vels, cols
 
     particles = create_particles(constants.NUM_PARTICLES)
-    positions, vels, colours = create_arrays(particles)
+    positions, vels, cols = create_arrays(particles)
 
     cpu.setup(vels)
 
@@ -72,7 +71,7 @@ def reset():
 
 
 def main():
-    global positions, vels, colours
+    global positions, vels, cols
     
     setup()
 
@@ -85,9 +84,9 @@ def main():
 
         mouse_clicked, mouse_x, mouse_y = get_mouse_stats()
         positions, vels = cpu.update_all_particles(positions, delta_time, mouse_clicked, mouse_x, mouse_y)
-        colours = Graphics.colours.get_colours(vels, colours)
+        cols = colours.get_colours(vels, cols)
 
-        restart = Graphics.draw.draw_particles(positions, colours)
+        restart = draw.draw_particles(positions, cols)
 
         if restart:
             reset()
