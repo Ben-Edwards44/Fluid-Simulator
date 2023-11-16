@@ -74,8 +74,8 @@ def main():
     Physics.cpu.setup(vels)
 
     clock = pygame.time.Clock()
-    while True:
-        start = time()
+    start = time()
+    for _ in range(1_000):#while True:
         delta_time = clock.tick(FPS) / 1000
 
         if delta_time > 0.5:
@@ -86,6 +86,8 @@ def main():
         colours = Graphics.colours.get_colours(vels, colours)
 
         Graphics.draw.draw_particles(positions, colours)
+
+    print(f"Time: {time() - start}s")
 
 
 if __name__ == "__main__":
