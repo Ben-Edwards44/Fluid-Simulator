@@ -1,11 +1,7 @@
 import pygame
 import numpy
-from numba import cuda
 from Graphics import menu
-from Physics import constants, precalculate
-
-
-NUM_THREADS = 4
+from Physics import constants
 
 
 pygame.init()
@@ -22,19 +18,6 @@ def draw_screen(screen_array):
     menu.update()
 
     pygame.display.update()
-
-
-def prepare_gpu_data(positions, colours, screen_array):
-    num_blocks = (NUM_THREADS + len(positions) - 1) // NUM_THREADS
-
-    blank_colour = numpy.zeros(3, numpy.int64)
-
-    pos_d = cuda.to_device(positions)
-    colour_d = cuda.to_device(colours)
-    blank_c_d = cuda.to_device(blank_colour)
-    screen_d = cuda.to_device(screen_array)
-
-    return num_blocks, pos_d, colour_d, blank_c_d, screen_d
 
 
 def convert_pos(pos):
@@ -62,7 +45,7 @@ def draw_circles(positions, colours):
 
 def draw_particles(positions, colours):
     if not menu.init:
-        menu.create_sliders(window)
+        menu.create_elements(window)
 
     new_pos = [convert_pos(i) for i in positions]
     new_pos = numpy.array(new_pos, numpy.int64)
@@ -70,6 +53,6 @@ def draw_particles(positions, colours):
     #TODO: maybe use blit_array() for speedups
     draw_circles(new_pos, colours)
 
-    for e in pygame.event.get():
-        if e.type == pygame.QUIT:
-            quit()
+    restart = menu.restart.button_object.clicked
+
+    return restart

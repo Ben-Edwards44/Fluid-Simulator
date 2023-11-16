@@ -58,7 +58,7 @@ def update_all_particles(positions, delta_time, mouse_clicked, mouse_x, mouse_y)
     density_d = precalculate_densities(len(positions), vels_d, positions, pos_d, blocks)
 
     mouse_x, mouse_y = convert_mouse_pos(mouse_x, mouse_y)
-    gpu.update_particles[blocks, constants.NUM_THREADS](pos_d, vels_d, density_d, constants.target_density, constants.pressure_multiplier, mouse_clicked, mouse_x, mouse_y)
+    gpu.update_particles[blocks, constants.NUM_THREADS](pos_d, vels_d, density_d, constants.target_density, constants.pressure_multiplier, constants.visc_strength, mouse_clicked, mouse_x, mouse_y)
 
     vels = vels_d.copy_to_host()
 

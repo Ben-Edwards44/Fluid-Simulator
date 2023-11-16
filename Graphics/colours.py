@@ -2,12 +2,6 @@ from Physics import constants
 from numba import cuda
 
 
-MAX_VEL = 10
-
-
-NUM_THREADS = 32
-
-
 @cuda.jit
 def colours_from_vel(colours, vels):
     inx = cuda.grid(1)
@@ -16,7 +10,7 @@ def colours_from_vel(colours, vels):
         return
     
     mag_vel = vels[inx][0]**2 + vels[inx][1]**2
-    multiplier = mag_vel / MAX_VEL
+    multiplier = mag_vel / constants.MAX_VEL
 
     if multiplier > 1:
         multiplier = 1

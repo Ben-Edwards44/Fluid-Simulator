@@ -90,7 +90,7 @@ def find_pressure(point, positions, densities, inx, target_density, pressure_mul
 
 
 @cuda.jit
-def find_viscosity(inx, positions, vels):
+def find_viscosity(inx, positions, vels, visc_strength):
     visc_x = 0
     visc_y = 0
 
@@ -105,12 +105,12 @@ def find_viscosity(inx, positions, vels):
             visc_x += (vels[i][0] - vels[inx][0]) * influence
             visc_y += (vels[i][1] - vels[inx][1]) * influence
 
-    return visc_x * constants.VISC_STRENGTH, visc_y * constants.VISC_STRENGTH
+    return visc_x * visc_strength, visc_y * visc_strength
 
 
 @cuda.jit
-def apply_viscosity(inx, positions, vels, densities):
-    visc_x, visc_y = find_viscosity(inx, positions, vels)
+def apply_viscosity(inx, positions, vels, densities, visc_strength):
+    visc_x, visc_y = find_viscosity(inx, positions, vels, visc_strength)
 
     acc_x = visc_x / densities[inx]
     acc_y = visc_y / densities[inx]
@@ -145,7 +145,7 @@ def apply_pressure(positions, vels, densities, inx, target_density, pressure_mul
 
 
 @cuda.jit
-def update_particles(positions, vels, densities, target_density, pressure_multiplier, mouse_clicked, mouse_x, mouse_y):
+def update_particles(positions, vels, densities, target_density, pressure_multiplier, visc_strength, mouse_clicked, mouse_x, mouse_y):
     current_inx = cuda.grid(1)
 
     if current_inx >= len(positions):
@@ -155,7 +155,7 @@ def update_particles(positions, vels, densities, target_density, pressure_multip
     vel = vels[current_inx]
 
     apply_pressure(positions, vels, densities, current_inx, target_density, pressure_multiplier)
-    apply_viscosity(current_inx, positions, vels, densities)
+    apply_viscosity(current_inx, positions, vels, densities, visc_strength)
     check_bounds(pos, vel)
     apply_external_forces(vel, pos, mouse_clicked, mouse_x, mouse_y)
 

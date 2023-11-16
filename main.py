@@ -1,38 +1,28 @@
 import Graphics.draw
 import Graphics.colours
-import Physics.particle
-import Physics.cpu
+from Physics import cpu, particle, constants
 import numpy
 from math import sqrt
 import pygame
 
 
-
-SPACE_X = 0.25
-SPACE_Y = 0.25
-
-
-FPS = 120
-
-
 def create_particles(num):
     particles = []
 
-    #"""    
     square = int(sqrt(num))
     remainder = num - square**2
 
-    offset_x = square * SPACE_X / 2
-    offset_y = square * SPACE_Y / 2
+    offset_x = square * constants.SPACE_X / 2
+    offset_y = square * constants.SPACE_Y / 2
 
     for x in range(square):
         for y in range(square):
-            particle = Physics.particle.Particle((x * SPACE_X - offset_x, y * SPACE_Y - offset_y), (255, 255, 255), x * 8 + y)
-            particles.append(particle)
+            p = particle.Particle((x * constants.SPACE_X - offset_x, y * constants.SPACE_Y - offset_y), (255, 255, 255), x * 8 + y)
+            particles.append(p)
 
     for i in range(remainder):
-        particle = Physics.particle.Particle((i * SPACE_X - offset_x, square * SPACE_Y - offset_y), (255, 255, 255), num - remainder + i)
-        particles.append(particle)
+        p = particle.Particle((i * constants.SPACE_X - offset_x, square * constants.SPACE_Y - offset_y), (255, 255, 255), num - remainder + i)
+        particles.append(p)
 
     return particles
 
@@ -57,24 +47,54 @@ def get_mouse_stats():
     return clicked, x, y
 
 
-def main():
-    particles = create_particles(1024)
+def setup():
+    global positions, vels, colours
+
+    particles = create_particles(constants.NUM_PARTICLES)
     positions, vels, colours = create_arrays(particles)
 
-    Physics.cpu.setup(vels)
+    cpu.setup(vels)
+
+
+def reset():
+    global positions, vels
+
+    particles = create_particles(constants.NUM_PARTICLES)
+    new_positions = [[i.x, i.y] for i in particles]
+
+    for i in range(len(positions)):
+        for x in range(2):
+            positions[i][x] = new_positions[i][x]
+            vels[i][x] = 0
+
+    cpu.setup(vels)
+
+
+def main():
+    global positions, vels, colours
+    
+    setup()
 
     clock = pygame.time.Clock()
     while True:
-        delta_time = clock.tick(FPS) / 1000
+        delta_time = clock.tick(constants.FPS) / 1000
 
         if delta_time > 0.5:
-            delta_time = 1 / FPS
+            delta_time = 1 / constants.FPS
 
         mouse_clicked, mouse_x, mouse_y = get_mouse_stats()
-        positions, vels = Physics.cpu.update_all_particles(positions, delta_time, mouse_clicked, mouse_x, mouse_y)
+        positions, vels = cpu.update_all_particles(positions, delta_time, mouse_clicked, mouse_x, mouse_y)
         colours = Graphics.colours.get_colours(vels, colours)
 
-        Graphics.draw.draw_particles(positions, colours)
+        restart = Graphics.draw.draw_particles(positions, colours)
+
+        if restart:
+            reset()
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                quit()
+
 
 
 if __name__ == "__main__":
