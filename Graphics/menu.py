@@ -1,5 +1,5 @@
+import constants
 import pygame_ui_toolkit
-from Physics import constants
 
 
 init = False

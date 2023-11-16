@@ -1,4 +1,5 @@
-from Physics import gpu, precalculate, constants, my_subdivide
+import constants
+from Physics import gpu, precalculate
 from numba import cuda
 import numpy
 

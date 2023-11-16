@@ -1,4 +1,4 @@
-from Physics import constants
+import constants
 from numba import cuda
 
 

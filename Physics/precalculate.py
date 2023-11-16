@@ -1,5 +1,5 @@
 import smoothing
-from Physics import constants
+import constants
 from numba import cuda
 from math import sqrt
 

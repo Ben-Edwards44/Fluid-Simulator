@@ -1,6 +1,7 @@
+import constants
 import Graphics.draw
 import Graphics.colours
-from Physics import cpu, particle, constants
+from Physics import cpu, particle
 import numpy
 from math import sqrt
 import pygame

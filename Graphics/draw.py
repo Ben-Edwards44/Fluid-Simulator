@@ -1,7 +1,7 @@
 import pygame
 import numpy
+import constants
 from Graphics import menu
-from Physics import constants
 
 
 pygame.init()
