@@ -1,5 +1,5 @@
 import smoothing
-from Physics import constants, subdivide
+from Physics import constants
 from numba import cuda
 from math import sqrt
 
@@ -33,8 +33,11 @@ def find_density(positions, densities):
     density = 0
 
     for i in range(length):
+        if i == length:
+            break
+
         dist = sqrt((positions[i][0] - sample_pos[0])**2 + (positions[i][1] - sample_pos[1])**2)
-    
+        
         influence = smoothing.gpu_smoothing_function(dist)
 
         density += influence * constants.PARTICLE_MASS

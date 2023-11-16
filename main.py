@@ -4,10 +4,8 @@ import Physics.particle
 import Physics.cpu
 import numpy
 from math import sqrt
-from random import uniform
 import pygame
 
-from time import time
 
 
 SPACE_X = 0.25
@@ -74,8 +72,7 @@ def main():
     Physics.cpu.setup(vels)
 
     clock = pygame.time.Clock()
-    start = time()
-    for _ in range(1_000):#while True:
+    while True:
         delta_time = clock.tick(FPS) / 1000
 
         if delta_time > 0.5:
@@ -86,8 +83,6 @@ def main():
         colours = Graphics.colours.get_colours(vels, colours)
 
         Graphics.draw.draw_particles(positions, colours)
-
-    print(f"Time: {time() - start}s")
 
 
 if __name__ == "__main__":
