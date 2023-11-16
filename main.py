@@ -33,14 +33,6 @@ def create_particles(num):
     for i in range(remainder):
         particle = Physics.particle.Particle((i * SPACE_X - offset_x, square * SPACE_Y - offset_y), (255, 255, 255), num - remainder + i)
         particles.append(particle)
-    """
-
-    for i in range(num):
-        x = uniform(-10, 10)
-        y = uniform(-10, 10)
-
-        particles.append(Physics.particle.Particle((x, y), (255, 255, 255), i))
-    """
 
     return particles
 

@@ -37,3 +37,14 @@ def gpu_smoothing_derivative(dist):
     
     scale = 12 / (SMOOTHING_RADIUS**4 * pi)
     return (dist - SMOOTHING_RADIUS) * scale
+
+
+@cuda.jit
+def gpu_visc_smoothing(dist):
+    if dist >= SMOOTHING_RADIUS:
+        return 0
+    
+    volume = pi * SMOOTHING_RADIUS**8 / 4
+    value = SMOOTHING_RADIUS * SMOOTHING_RADIUS - dist * dist
+
+    return value**3 / volume

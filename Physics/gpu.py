@@ -90,6 +90,36 @@ def find_pressure(point, positions, densities, inx, target_density, pressure_mul
 
 
 @cuda.jit
+def find_viscosity(inx, positions, vels):
+    visc_x = 0
+    visc_y = 0
+
+    x, y = positions[inx]
+
+    for i, j in enumerate(positions):
+        dist = sqrt((j[0] - x)**2 + (j[1] - y)**2)
+
+        if dist <= smoothing.SMOOTHING_RADIUS:
+            influence = smoothing.gpu_visc_smoothing(dist)
+
+            visc_x += (vels[i][0] - vels[inx][0]) * influence
+            visc_y += (vels[i][1] - vels[inx][1]) * influence
+
+    return visc_x * constants.VISC_STRENGTH, visc_y * constants.VISC_STRENGTH
+
+
+@cuda.jit
+def apply_viscosity(inx, positions, vels, densities):
+    visc_x, visc_y = find_viscosity(inx, positions, vels)
+
+    acc_x = visc_x / densities[inx]
+    acc_y = visc_y / densities[inx]
+
+    vels[inx][0] += acc_x
+    vels[inx][1] += acc_y
+
+
+@cuda.jit
 def density_to_pressure(density, target_density, pressure_multiplier):
     error = density - target_density
     return error * pressure_multiplier
@@ -125,6 +155,7 @@ def update_particles(positions, vels, densities, target_density, pressure_multip
     vel = vels[current_inx]
 
     apply_pressure(positions, vels, densities, current_inx, target_density, pressure_multiplier)
+    apply_viscosity(current_inx, positions, vels, densities)
     check_bounds(pos, vel)
     apply_external_forces(vel, pos, mouse_clicked, mouse_x, mouse_y)
 

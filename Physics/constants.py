@@ -28,6 +28,9 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 675
 
 
+VISC_STRENGTH = 0.3
+
+
 #not constant
 target_density = 1.15
 pressure_multiplier = 10
