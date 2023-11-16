@@ -1,0 +1,203 @@
+from Physics import constants
+from smoothing import SMOOTHING_RADIUS
+import numpy
+from numba import cuda
+
+
+PRIME_X = 977
+PRIME_Y = 509
+
+CELLS_X = (constants.BOUNDING_RIGHT - constants.BOUNDING_LEFT) // SMOOTHING_RADIUS
+CELLS_Y = (constants.BOUNDING_BOTTOM - constants.BOUNDING_TOP) // SMOOTHING_RADIUS
+
+
+@cuda.jit
+def get_cell_keys(positions, cell_keys):
+    inx = cuda.grid(1)
+    length = len(positions)
+
+    if inx >= length:
+        return
+    
+    x, y = positions[inx]
+
+    cell_x, cell_y = find_cell(x, y)
+    cell_key = hash_cell(cell_x, cell_y, length)
+
+    cell_keys[inx] = cell_key
+    
+
+@cuda.jit
+def find_cell(x, y):
+    offset_x = x - float(constants.BOUNDING_LEFT)
+    offset_y = y - float(constants.BOUNDING_TOP)
+
+    cell_x = int(offset_x / SMOOTHING_RADIUS)
+    cell_y = int(offset_y / SMOOTHING_RADIUS)
+
+    return cell_x, cell_y
+
+
+@cuda.jit
+def hash_cell(cell_x, cell_y, length):
+    p_x = cell_x * PRIME_X
+    p_y = cell_y * PRIME_Y
+
+    hash = p_x + p_y
+
+    return hash % length
+
+
+def get_spatial_lookup(positions, pos_d, num_threads, num_blocks):
+    #run on cpu
+    cell_keys = numpy.zeros(len(positions), numpy.int64)
+    cell_keys_d = cuda.to_device(cell_keys)
+
+    get_cell_keys[num_blocks, num_threads](pos_d, cell_keys_d)
+
+    cell_keys = cell_keys_d.copy_to_host()
+    
+    spatial_lookup = [[i, x] for i, x in enumerate(cell_keys)]
+    spatial_lookup = sorted(spatial_lookup, key=lambda x : x[1])
+
+    return numpy.array(spatial_lookup)
+
+
+@cuda.jit
+def start_index(spatial_lookup, start_indices):
+    inx = cuda.grid(1)
+
+    if inx >= len(spatial_lookup):
+        return
+    
+    key = spatial_lookup[inx][1]
+
+    if inx == 0:
+        prev_key = 2**64 - 1
+    else:
+        prev_key = spatial_lookup[inx - 1][1]
+    
+    if key != prev_key:
+        start_indices[key] = inx
+
+
+def get_device_data(positions, pos_d, num_threads, num_blocks):
+    #run on cpu
+    spatial_lookup = get_spatial_lookup(positions, pos_d, num_threads, num_blocks)
+    spatial_lookup_d = cuda.to_device(spatial_lookup)
+
+    start_indices = numpy.zeros(len(positions), numpy.int64)
+    start_indices_d = cuda.to_device(start_indices)
+
+    start_index[num_blocks, num_threads](spatial_lookup_d, start_indices_d)
+
+    return spatial_lookup_d, start_indices_d
+
+
+@cuda.jit
+def get_all_particle_pos(length, positions, spatial_lookup, start_indices, temp_array, result_array):
+    inx = cuda.grid(1)
+
+    if inx >= length:
+        return
+    
+    for i in range(length):
+        temp_array[i] = length
+
+    get_nearby_particles(inx, positions, spatial_lookup, start_indices, temp_array)
+    
+    for x, y in enumerate(temp_array):
+        result_array[inx][x] = y
+
+
+@cuda.jit
+def get_nearby_particles(inx, positions, spatial_lookup, start_indices, result_array):
+    #store nearby particle indices in result array
+    rad_square = SMOOTHING_RADIUS * SMOOTHING_RADIUS
+
+    x, y = positions[inx]
+    cell_x, cell_y = find_cell(x, y)
+
+    result_inx = 0
+
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            current_x = cell_x + i
+            current_y = j + cell_y
+
+            if not 0 <= current_x <= CELLS_X or not 0 <= current_y <= CELLS_Y:
+                continue
+
+            key = hash_cell(current_x, current_y, len(positions))
+            start_inx = start_indices[key]
+
+            while start_inx < len(spatial_lookup) and spatial_lookup[start_inx][1] == key:
+                p_inx = spatial_lookup[start_inx][0]
+
+                dist = (positions[p_inx][0] - x)**2 + (positions[p_inx][1] - y)**2
+
+                if dist <= rad_square:
+                    result_array[result_inx] = p_inx
+                    result_inx += 1
+
+                start_inx += 1
+
+
+#delete later
+def cpu_find_cell(x, y):
+    offset_x = x - float(constants.BOUNDING_LEFT)
+    offset_y = y - float(constants.BOUNDING_TOP)
+
+    cell_x = int(offset_x / SMOOTHING_RADIUS)
+    cell_y = int(offset_y / SMOOTHING_RADIUS)
+
+    return cell_x, cell_y
+
+
+def cpu_hash_cell(cell_x, cell_y, length):
+    p_x = cell_x * PRIME_X
+    p_y = cell_y * PRIME_Y
+
+    hash = p_x + p_y
+
+    return hash % length
+#delete later
+def cpu_get_all_particle_pos(length, positions, spatial_lookup, start_indices, temp_array, result_array):
+    for inx in range(length):
+        for i in range(length):
+            temp_array[i] = length
+
+        cpu_get_nearby_particles(inx, positions, spatial_lookup, start_indices, temp_array)
+        
+        for x, y in enumerate(temp_array):
+            result_array[inx][x] = y
+def cpu_get_nearby_particles(inx, positions, spatial_lookup, start_indices, result_array):
+    #store nearby particle indices in result array
+    rad_square = SMOOTHING_RADIUS * SMOOTHING_RADIUS
+
+    x, y = positions[inx]
+    cell_x, cell_y = cpu_find_cell(x, y)
+
+    result_inx = 0
+
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            current_x = cell_x + i
+            current_y = j + cell_y
+
+            if not 0 <= current_x <= CELLS_X or not 0 <= current_y <= CELLS_Y:
+                continue
+
+            key = cpu_hash_cell(current_x, current_y, len(positions))
+            start_inx = start_indices[key]
+
+            while start_inx < len(spatial_lookup) and spatial_lookup[start_inx][1] == key:
+                p_inx = spatial_lookup[start_inx][0]
+
+                dist = (positions[p_inx][0] - x)**2 + (positions[p_inx][1] - y)**2
+
+                if dist <= rad_square and dist > 0:
+                    result_array[result_inx] = p_inx
+                    result_inx += 1
+
+                start_inx += 1
