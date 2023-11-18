@@ -42,7 +42,7 @@ def find_density(positions, densities, spatial_lookup, start_indices, result_arr
 
         dist = sqrt((positions[i][0] - sample_pos[0])**2 + (positions[i][1] - sample_pos[1])**2)
         
-        influence = smoothing.gpu_smoothing_function(dist)
+        influence = smoothing.smoothing_function(dist)
 
         density += influence * constants.PARTICLE_MASS
 

@@ -82,7 +82,7 @@ def find_pressure(point, positions, nearby_inxs, densities, inx, target_density,
         dir_x = (pos[0] - x) / dist
         dir_y = (pos[1] - y) / dist
 
-        gradient = smoothing.gpu_smoothing_derivative(dist)
+        gradient = smoothing.smoothing_derivative(dist)
 
         density = densities[i]
         shared_pressure = get_shared_pressure(density, densities[inx], target_density, pressure_multiplier)
@@ -109,7 +109,7 @@ def find_viscosity(inx, positions, nearby_inxs, vels, visc_strength):
         dist = sqrt((positions[i][0] - x)**2 + (positions[i][1] - y)**2)
 
         if dist <= smoothing.SMOOTHING_RADIUS:
-            influence = smoothing.gpu_visc_smoothing(dist)
+            influence = smoothing.visc_smoothing(dist)
 
             visc_x += (vels[i][0] - vels[inx][0]) * influence
             visc_y += (vels[i][1] - vels[inx][1]) * influence

@@ -5,24 +5,8 @@ from math import pi
 SMOOTHING_RADIUS = 0.35
 
 
-def cpu_smoothing_function(dist):
-    if dist >= SMOOTHING_RADIUS:
-        return 0
-    
-    volume = (pi * SMOOTHING_RADIUS**4) / 6
-    return (SMOOTHING_RADIUS - dist) * (SMOOTHING_RADIUS - dist) / volume
-
-
-def cpu_smoothing_derivative(dist):
-    if dist >= SMOOTHING_RADIUS:
-        return 0
-    
-    scale = 12 / (SMOOTHING_RADIUS**4 * pi)
-    return (dist - SMOOTHING_RADIUS) * scale
-
-
 @cuda.jit
-def gpu_smoothing_function(dist):
+def smoothing_function(dist):
     if dist >= SMOOTHING_RADIUS:
         return 0
     
@@ -31,7 +15,7 @@ def gpu_smoothing_function(dist):
 
 
 @cuda.jit
-def gpu_smoothing_derivative(dist):
+def smoothing_derivative(dist):
     if dist >= SMOOTHING_RADIUS:
         return 0
     
@@ -40,7 +24,7 @@ def gpu_smoothing_derivative(dist):
 
 
 @cuda.jit
-def gpu_visc_smoothing(dist):
+def visc_smoothing(dist):
     if dist >= SMOOTHING_RADIUS:
         return 0
     
