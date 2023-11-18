@@ -1,10 +1,10 @@
 # --- Used in main ---
-NUM_PARTICLES = 1024
+NUM_PARTICLES = 1600
 
-SPACE_X = 0.25
-SPACE_Y = 0.25
+SPACE_X = 0.1
+SPACE_Y = 0.1
 
-FPS = 120
+FPS = 60
 # --------------------
 
 
@@ -57,7 +57,7 @@ NEAR_PRESSURE_MULTIPLIER = 2
 
 
 # --- not constant ---
-target_density = 1.15
-pressure_multiplier = 10
-visc_strength = 0.3
+target_density = 28
+pressure_multiplier = 3
+visc_strength = 0.6
 # --------------------
