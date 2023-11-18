@@ -36,7 +36,7 @@ def find_density(positions, densities, spatial_lookup, start_indices, result_arr
     nearby_inxs = result_arrays[inx]
     subdivide.get_nearby_particles(inx, positions, spatial_lookup, start_indices, nearby_inxs)
 
-    for i in nearby_inxs:#range(length):#
+    for i in nearby_inxs:
         if i == length:
             break
 
