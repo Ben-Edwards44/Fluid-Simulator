@@ -10,7 +10,7 @@ def apply_gravity(vel):
 
 
 @cuda.jit
-def get_mouse_force(mouse_x, mouse_y, pos, vel):
+def get_mouse_force(mouse_x, mouse_y, pos):
     pos_x, pos_y = pos
 
     dist = sqrt((mouse_x - pos_x)**2 + (mouse_y - pos_y)**2)
@@ -35,7 +35,7 @@ def apply_external_forces(vel, pos, mouse_clicked, mouse_x, mouse_y):
         apply_gravity(vel)
 
     if mouse_clicked:
-        acc_x, acc_y = get_mouse_force(mouse_x, mouse_y, pos, vel)
+        acc_x, acc_y = get_mouse_force(mouse_x, mouse_y, pos)
 
         vel[0] += acc_x
         vel[1] += acc_y
