@@ -21,8 +21,8 @@ BOUNDING_RIGHT = 8
 
 PARTICLE_MASS = 1.0
 
-MOUSE_INFLUENCE = 1
-MOUSE_INFLUENCE_RADIUS = 2
+MOUSE_INFLUENCE = 0.2
+MOUSE_INFLUENCE_RADIUS = 3
 # -------------------
 
 
@@ -51,6 +51,9 @@ MAX_VEL = 20
 SLIDER_X = 100
 LENGTH = 100
 # --------------------
+
+
+NEAR_PRESSURE_MULTIPLIER = 2
 
 
 # --- not constant ---
