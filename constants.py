@@ -31,8 +31,8 @@ PREDICT_D_T = 0.02
 # ----------------------------
 
 
-# --- Used in cpu ---
-NUM_THREADS = 32
+# --- Used in multiple places ---
+NUM_THREADS = 8
 # -------------------
 
 
