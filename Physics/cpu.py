@@ -1,5 +1,5 @@
 import constants
-from Physics import gpu, precalculate
+from Physics import gpu, precalculate, subdivide
 from numba import cuda
 import numpy
 
@@ -17,10 +17,15 @@ def precalculate_densities(length, vels_d, positions, positions_d, num_blocks):
     predicted_pos = numpy.zeros((length, 2))
     predicted_d = cuda.to_device(predicted_pos)
 
-    precalculate.predict_positions[num_blocks, constants.NUM_THREADS](positions_d, vels_d, predicted_d)    
-    precalculate.find_density[num_blocks, constants.NUM_THREADS](predicted_d, density_d)
+    precalculate.predict_positions[num_blocks, constants.NUM_THREADS](positions_d, vels_d, predicted_d)
 
-    return density_d
+    spatial_lookup, start_indices = subdivide.get_device_data(length, predicted_d, num_blocks)
+    result_arrays = numpy.full((length, length), length)
+    result_d = cuda.to_device(result_arrays)
+
+    precalculate.find_density[num_blocks, constants.NUM_THREADS](predicted_d, density_d, spatial_lookup, start_indices, result_d)
+
+    return density_d, result_d
 
 
 def prepare_gpu_data(positions):
@@ -56,10 +61,10 @@ def update_all_particles(positions, delta_time, mouse_clicked, mouse_x, mouse_y)
 
     blocks, pos_d, vels_d = prepare_gpu_data(positions)
 
-    density_d = precalculate_densities(len(positions), vels_d, positions, pos_d, blocks)
+    density_d, nearby_d = precalculate_densities(len(positions), vels_d, positions, pos_d, blocks)
 
     mouse_x, mouse_y = convert_mouse_pos(mouse_x, mouse_y)
-    gpu.update_particles[blocks, constants.NUM_THREADS](pos_d, vels_d, density_d, constants.target_density, constants.pressure_multiplier, constants.visc_strength, mouse_clicked, mouse_x, mouse_y)
+    gpu.update_particles[blocks, constants.NUM_THREADS](pos_d, vels_d, density_d, nearby_d, constants.target_density, constants.pressure_multiplier, constants.visc_strength, mouse_clicked, mouse_x, mouse_y)
 
     vels = vels_d.copy_to_host()
 

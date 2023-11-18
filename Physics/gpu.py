@@ -10,7 +10,7 @@ def apply_gravity(vel):
 
 
 @cuda.jit
-def get_mouse_force(mouse_x, mouse_y, pos, vel):
+def get_mouse_force(mouse_x, mouse_y, pos):
     pos_x, pos_y = pos
 
     dist = sqrt((mouse_x - pos_x)**2 + (mouse_y - pos_y)**2)
@@ -23,8 +23,8 @@ def get_mouse_force(mouse_x, mouse_y, pos, vel):
 
     strength = 1 - dist / constants.MOUSE_INFLUENCE_RADIUS
 
-    acc_x = (dir_x * constants.MOUSE_INFLUENCE) * strength  #possibly subtract vel to slow particle down
-    acc_y = (dir_y * constants.MOUSE_INFLUENCE) * strength  #possibly subtract vel to slow particle down
+    acc_x = dir_x * constants.MOUSE_INFLUENCE * strength
+    acc_y = dir_y * constants.MOUSE_INFLUENCE * strength
 
     return acc_x, acc_y
 
@@ -35,7 +35,7 @@ def apply_external_forces(vel, pos, mouse_clicked, mouse_x, mouse_y):
         apply_gravity(vel)
 
     if mouse_clicked:
-        acc_x, acc_y = get_mouse_force(mouse_x, mouse_y, pos, vel)
+        acc_x, acc_y = get_mouse_force(mouse_x, mouse_y, pos)
 
         vel[0] += acc_x
         vel[1] += acc_y
@@ -59,15 +59,19 @@ def check_bounds(pos, vel):
 
 
 @cuda.jit
-def find_pressure(point, positions, densities, inx, target_density, pressure_multiplier):
+def find_pressure(point, positions, nearby_inxs, densities, inx, target_density, pressure_multiplier):
     x, y = point
+
+    length = len(positions)
 
     pressure_x = 0
     pressure_y = 0
 
-    for i in range(len(positions)):
+    for i in nearby_inxs:
         if i == inx:
             continue
+        elif i == length:
+            break
 
         pos = positions[i]
         dist = sqrt((x - pos[0])**2 + (y - pos[1])**2)
@@ -90,14 +94,19 @@ def find_pressure(point, positions, densities, inx, target_density, pressure_mul
 
 
 @cuda.jit
-def find_viscosity(inx, positions, vels, visc_strength):
+def find_viscosity(inx, positions, nearby_inxs, vels, visc_strength):
     visc_x = 0
     visc_y = 0
 
+    length = len(positions)
+
     x, y = positions[inx]
 
-    for i, j in enumerate(positions):
-        dist = sqrt((j[0] - x)**2 + (j[1] - y)**2)
+    for i in nearby_inxs:
+        if i == length:
+            break
+
+        dist = sqrt((positions[i][0] - x)**2 + (positions[i][1] - y)**2)
 
         if dist <= smoothing.SMOOTHING_RADIUS:
             influence = smoothing.gpu_visc_smoothing(dist)
@@ -109,8 +118,8 @@ def find_viscosity(inx, positions, vels, visc_strength):
 
 
 @cuda.jit
-def apply_viscosity(inx, positions, vels, densities, visc_strength):
-    visc_x, visc_y = find_viscosity(inx, positions, vels, visc_strength)
+def apply_viscosity(inx, positions, nearby_inxs, vels, densities, visc_strength):
+    visc_x, visc_y = find_viscosity(inx, positions, nearby_inxs, vels, visc_strength)
 
     acc_x = visc_x / densities[inx]
     acc_y = visc_y / densities[inx]
@@ -134,8 +143,8 @@ def get_shared_pressure(density1, density2, target_density, pressure_multiplier)
 
 
 @cuda.jit
-def apply_pressure(positions, vels, densities, inx, target_density, pressure_multiplier):
-    pressure_x, pressure_y = find_pressure(positions[inx], positions, densities, inx, target_density, pressure_multiplier)
+def apply_pressure(positions, nearby_inxs, vels, densities, inx, target_density, pressure_multiplier):
+    pressure_x, pressure_y = find_pressure(positions[inx], positions, nearby_inxs, densities, inx, target_density, pressure_multiplier)
 
     acc_x = -pressure_x / densities[inx]
     acc_y = -pressure_y / densities[inx]
@@ -145,7 +154,7 @@ def apply_pressure(positions, vels, densities, inx, target_density, pressure_mul
 
 
 @cuda.jit
-def update_particles(positions, vels, densities, target_density, pressure_multiplier, visc_strength, mouse_clicked, mouse_x, mouse_y):
+def update_particles(positions, vels, densities, nearby_array, target_density, pressure_multiplier, visc_strength, mouse_clicked, mouse_x, mouse_y):
     current_inx = cuda.grid(1)
 
     if current_inx >= len(positions):
@@ -153,9 +162,10 @@ def update_particles(positions, vels, densities, target_density, pressure_multip
     
     pos = positions[current_inx]
     vel = vels[current_inx]
+    nearby_inxs = nearby_array[current_inx]
 
-    apply_pressure(positions, vels, densities, current_inx, target_density, pressure_multiplier)
-    apply_viscosity(current_inx, positions, vels, densities, visc_strength)
+    apply_pressure(positions, nearby_inxs, vels, densities, current_inx, target_density, pressure_multiplier)
+    apply_viscosity(current_inx, positions, nearby_inxs, vels, densities, visc_strength)
     check_bounds(pos, vel)
     apply_external_forces(vel, pos, mouse_clicked, mouse_x, mouse_y)
 
