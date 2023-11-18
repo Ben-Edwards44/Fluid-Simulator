@@ -4,5 +4,6 @@ To do:
 - [ ] optimise spatial lookup and start indices calculations to run on gpu
 - [X] near density and near pressure
 - [ ] increase number of particles
-- [ ] Add slider for near pressure multiplier
-- [ ] Add labels for sliders
+- [ ] add slider for near pressure multiplier
+- [X] add labels for sliders
+- [ ] improve performance
