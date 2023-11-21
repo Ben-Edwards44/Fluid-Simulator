@@ -53,11 +53,9 @@ LENGTH = 100
 # --------------------
 
 
-NEAR_PRESSURE_MULTIPLIER = 2
-
-
 # --- not constant ---
 target_density = 28
 pressure_multiplier = 3
+near_pressure_multiplier = 2
 visc_strength = 0.6
 # --------------------
