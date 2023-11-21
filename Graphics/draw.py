@@ -1,7 +1,7 @@
 import pygame
 import numpy
 import constants
-from Graphics import menu
+from Graphics import menu, screen_array
 
 
 pygame.init()
@@ -29,7 +29,7 @@ def convert_pos(pos):
     scale_x = constants.SCREEN_WIDTH / (constants.BOUNDING_RIGHT - constants.BOUNDING_LEFT)
     scale_y = constants.SCREEN_HEIGHT / (constants.BOUNDING_BOTTOM - constants.BOUNDING_TOP)
 
-    return [x * scale_x, y * scale_y]
+    return [int(x * scale_x), int(y * scale_y)]
 
 
 def draw_circles(positions, colours):
@@ -39,7 +39,16 @@ def draw_circles(positions, colours):
         pygame.draw.circle(window, x, i, 5)
 
     menu.update()
+    pygame.display.update()
 
+
+def draw_by_array(positions, colours):
+    #need to optimise
+    array = screen_array.get_screen_array(positions, colours)
+
+    pygame.surfarray.blit_array(window, array)
+
+    menu.update()
     pygame.display.update()
 
 
@@ -50,8 +59,8 @@ def draw_particles(positions, colours):
     new_pos = [convert_pos(i) for i in positions]
     new_pos = numpy.array(new_pos, numpy.int64)
     
-    #TODO: maybe use blit_array() for speedups
     draw_circles(new_pos, colours)
+    #draw_by_array(new_pos, colours)
 
     restart = menu.restart.button_object.clicked
 
