@@ -4,9 +4,6 @@ import numpy
 from numba import cuda
 
 
-PRIME_X = 977
-PRIME_Y = 509
-
 CELLS_X = int((constants.BOUNDING_RIGHT - constants.BOUNDING_LEFT) // SMOOTHING_RADIUS)
 CELLS_Y = int((constants.BOUNDING_BOTTOM - constants.BOUNDING_TOP) // SMOOTHING_RADIUS)
 
@@ -50,8 +47,8 @@ def find_cell(x, y):
 
 @cuda.jit
 def hash_cell(cell_x, cell_y, length):
-    p_x = cell_x * PRIME_X
-    p_y = cell_y * PRIME_Y
+    p_x = cell_x * constants.PRIME_X
+    p_y = cell_y * constants.PRIME_Y
 
     hash = p_x + p_y
 

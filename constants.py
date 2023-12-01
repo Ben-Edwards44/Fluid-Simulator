@@ -53,6 +53,12 @@ LENGTH = 100
 # --------------------
 
 
+# --- Used in subdivide ---
+PRIME_X = 977
+PRIME_Y = 509
+# -------------------------
+
+
 # --- not constant ---
 target_density = 28
 pressure_multiplier = 3

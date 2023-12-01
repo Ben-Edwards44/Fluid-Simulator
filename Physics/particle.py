@@ -1,3 +1,5 @@
+#only really useful when debugging - only used to initialise the particles
+
 class Particle:
     def __init__(self, pos, colour, array_inx):
         self.x, self.y = pos

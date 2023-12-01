@@ -1,7 +1,7 @@
 import pygame
 import numpy
 import constants
-from Graphics import menu, screen_array
+from Graphics import menu
 
 
 pygame.init()
@@ -37,16 +37,6 @@ def draw_circles(positions, colours):
 
     for i, x in zip(positions, colours):
         pygame.draw.circle(window, x, i, 5)
-
-    menu.update()
-    pygame.display.update()
-
-
-def draw_by_array(positions, colours):
-    #need to optimise
-    array = screen_array.get_screen_array(positions, colours)
-
-    pygame.surfarray.blit_array(window, array)
 
     menu.update()
     pygame.display.update()

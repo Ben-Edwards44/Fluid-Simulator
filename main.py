@@ -83,6 +83,7 @@ def main():
             delta_time = 1 / constants.FPS
 
         mouse_clicked, mouse_x, mouse_y = get_mouse_stats()
+        
         positions, vels = cpu.update_all_particles(positions, delta_time, mouse_clicked, mouse_x, mouse_y)
         cols = colours.get_colours(vels, cols)
 
