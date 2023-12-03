@@ -31,4 +31,3 @@ In an attempt to increase performance and allow the simulation of a larger numbe
 - Viscoelasiticty.
 - More accurate surface tension.
 - Interactions with objects.
-- Finish the README.md file.
