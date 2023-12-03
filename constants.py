@@ -1,5 +1,5 @@
 # --- Used in main ---
-NUM_PARTICLES = 1600
+NUM_PARTICLES = 1200
 
 SPACE_X = 0.1
 SPACE_Y = 0.1

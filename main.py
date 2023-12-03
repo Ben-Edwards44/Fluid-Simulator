@@ -6,6 +6,11 @@ from Physics import cpu, particle
 from math import sqrt
 
 
+from time import sleep
+
+sleep(20)
+
+
 def create_particles(num):
     particles = []
 

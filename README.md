@@ -2,6 +2,8 @@
 
 A particle based fluid simulator written in python.
 
+![Video](./Images/long.mp4)
+
 ## About
 
 This project was heavily inspired by [this video](https://www.youtube.com/watch?v=rSKMYc1CQHE) by Sebastian Lague.
