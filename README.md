@@ -6,7 +6,7 @@
 
 ![Interacting with fluid](./Images/click.gif)
 
-*Note: The image quality is reduced because due to compression*
+*Note: The above videos are a lower quality than the origionals due them being compressed into .gif files*
 
 ## About
 
