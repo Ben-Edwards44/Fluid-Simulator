@@ -1,8 +1,12 @@
 # Fluid Simulator
 
-A particle based fluid simulator written in python.
+> A particle based fluid simulator written in python.
 
-![Video](./Images/long.mp4)
+![Normal fluid](./Images/normal.gif)
+
+![Interacting with fluid](./Images/click.gif)
+
+*Note: The image quality is reduced because due to compression*
 
 ## About
 
